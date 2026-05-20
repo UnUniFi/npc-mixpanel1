@@ -226,6 +226,7 @@ export async function runMixtapeJob(options = {}, logger = log) {
 	const headless = options.headless ?? true;
 	const past = options.past ?? true;
 	const bugRate = options.bugRate ?? 0.15;
+	const timeoutMs = options.timeout ?? JOB_TIMEOUT_MS;
 
 	productionLogger(`\n${'█'.repeat(60)}`);
 	productionLogger(`🚀 MIXTAPE JOB STARTED`);
@@ -233,6 +234,7 @@ export async function runMixtapeJob(options = {}, logger = log) {
 	productionLogger(`⏰ Start time: ${new Date().toISOString()}`);
 	productionLogger(`👥 Meeples: ${numUsers} (concurrency: ${concurrency})`);
 	productionLogger(`🎯 Bug rate: ${(bugRate * 100).toFixed(0)}%`);
+	productionLogger(`⏱️  Timeout: ${timeoutMs ? `${timeoutMs / 1000}s` : 'disabled'}`);
 	productionLogger(`${'█'.repeat(60)}\n`);
 
 	const assignments = assignPersonas(numUsers);
@@ -287,10 +289,12 @@ export async function runMixtapeJob(options = {}, logger = log) {
 			);
 		}
 
-		const batchResults = await Promise.race([
-			Promise.all(batches),
-			new Promise((_, reject) => setTimeout(() => reject(new Error('Mixtape job timeout')), JOB_TIMEOUT_MS))
-		]);
+		const batchResults = timeoutMs
+			? await Promise.race([
+					Promise.all(batches),
+					new Promise((_, reject) => setTimeout(() => reject(new Error('Mixtape job timeout')), timeoutMs))
+				])
+			: await Promise.all(batches);
 
 		const totalDuration = (Date.now() - jobStartTime) / 1000;
 
@@ -341,10 +345,14 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
 	const headless = getArg('headless', 'false') === 'true';
 	const past = getArg('past', 'false') === 'true';
 	const bugRate = parseFloat(getArg('bugRate', '0'));
+	const timeoutArg = getArg('timeout', '0');
+	const timeout = parseInt(timeoutArg, 10) * 1000;
 
-	console.log(`🧪 Mixtape standalone: ${users} meeples, headless=${headless}, past=${past}, bugRate=${bugRate}\n`);
+	console.log(
+		`🧪 Mixtape standalone: ${users} meeples, headless=${headless}, past=${past}, bugRate=${bugRate}, timeout=${timeout ? `${timeout / 1000}s` : 'disabled'}\n`
+	);
 
-	runMixtapeJob({ users, headless, past, bugRate }, console.log)
+	runMixtapeJob({ users, headless, past, bugRate, timeout }, console.log)
 		.then(result => {
 			console.log(`\n✅ Done! ${JSON.stringify(result.personaDistribution)}`);
 			process.exit(0);
