@@ -1,4 +1,4 @@
-# NPC Mixpanel 🎭
+# NPC Mixpanels 🎭
 
 > **Generate realistic user behavior data for any website**
 
