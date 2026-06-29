@@ -39,7 +39,7 @@
 		"ak-tools": "^1.0.66",
 		"cookie-parser": "^1.4.7",
 		"dayjs": "^1.11.10",
-		"dotenv": "^16.4.5",
+		"dotenv": "^17.4.2",
 		"express": "^4.21.2",
 		"mixpanel": "^0.18.1",
 		"p-limit": "^7.3.0",
