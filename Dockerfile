@@ -1,5 +1,5 @@
 # Use the official Node.js runtime as the base image
-FROM node:20-slim
+FROM node:26-slim
 
 # Install system dependencies needed for Puppeteer
 RUN apt-get update \
